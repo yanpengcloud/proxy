@@ -246,7 +246,6 @@ installSSR
 setFirewall
 installBBR
 info
-}
 
 uninstall() {
     read -p " 确定卸载SSR吗？(y/n)" answer
