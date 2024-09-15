@@ -65,7 +65,7 @@ install_net_tools() {
 }
 
 getData() {
-    PASSWORD="xiaoer123"
+    PASSWORD="123111"
     PORT=$(shuf -i 1024-65535 -n 1)
     METHOD="aes-256-cfb"
     PROTOCOL="origin"
