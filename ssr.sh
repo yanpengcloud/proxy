@@ -49,6 +49,21 @@ checkSystem() {
     fi
 }
 
+is_amazon() {
+    # Example check for Amazon Linux
+    if [[ $(lsb_release -a 2>/dev/null | grep -i amazon) ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+install_net_tools() {
+    echo "Installing net-tools..."
+    apt update
+    apt install -y net-tools
+}
+
 getData() {
     PASSWORD="xiaoer123"
     PORT=$(shuf -i 1024-65535 -n 1)
@@ -80,6 +95,11 @@ preinstall() {
         apt install -y python3.8
     fi
     ln -sf /usr/bin/python3.8 /usr/bin/python
+
+    # Check and install net-tools if in Amazon environment
+    if is_amazon; then
+        install_net_tools
+    fi
 }
 
 installSSR() {
@@ -141,7 +161,7 @@ EOF
     systemctl daemon-reload
     systemctl enable shadowsocksR && systemctl restart shadowsocksR
     sleep 3
-    res=$(netstat -nltp | grep ${PORT} | grep python)
+    res=$(ss -nltp | grep ${PORT} | grep python)
     if [ "${res}" = "" ]; then
         colorEcho $RED " $OS ssr启动失败，请检查端口是否被占用！"
         exit 1
@@ -190,7 +210,7 @@ installBBR() {
 
 info() {
     port=$(grep server_port $CONFIG_FILE | cut -d: -f2 | tr -d \",' ')
-    res=$(netstat -nltp | grep ${port} | grep python)
+    res=$(ss -nltp | grep ${port} | grep python)
     [ -z "$res" ] && status="${RED}已停止${PLAIN}" || status="${GREEN}正在运行${PLAIN}"
     password=$(grep password $CONFIG_FILE | cut -d: -f2 | tr -d \",' ')
     method=$(grep method $CONFIG_FILE | cut -d: -f2 | tr -d \",' ')
@@ -213,23 +233,19 @@ info() {
     echo -e "   ${BLUE}密码(password)：${PLAIN}${RED}${password}${PLAIN}"
     echo -e "   ${BLUE}加密方式(method)：${PLAIN} ${RED}${method}${PLAIN}"
     echo -e "   ${BLUE}协议(protocol)：${PLAIN} ${RED}${protocol}${PLAIN}"
-    echo -e "   ${BLUE}混淆(obfuscation)：${PLAIN} ${RED}${obfs}${PLAIN}"
-    echo
-    echo -e " ${BLUE}ssr链接:${PLAIN} $link"
+    echo -e "   ${BLUE}混淆模式(obfs)：${PLAIN} ${RED}${obfs}${PLAIN}"
+    echo -e " ${BLUE}链接地址：${PLAIN}${RED}${link}${PLAIN}"
+    echo -e " ${BLUE}配置信息请保管好！${PLAIN}"
+    echo ============================================
 }
 
-install() {
-    echo -n " 系统版本:  "
-    lsb_release -a
-
-    checkSystem
-    getData
-    preinstall
-    installBBR
-    installSSR
-    setFirewall
-
-    info
+checkSystem
+preinstall
+getData
+installSSR
+setFirewall
+installBBR
+info
 }
 
 uninstall() {
