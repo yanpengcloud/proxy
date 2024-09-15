@@ -247,31 +247,3 @@ setFirewall
 installBBR
 info
 
-uninstall() {
-    read -p " 确定卸载SSR吗？(y/n)" answer
-    [ -z ${answer} ] && answer="n"
-
-    if [ "${answer}" == "y" ] || [ "${answer}" == "Y" ]; then
-        rm -f $CONFIG_FILE
-        rm -f /var/log/shadowsocks.log
-        rm -rf /usr/local/shadowsocks
-        systemctl disable shadowsocksR && systemctl stop shadowsocksR && rm -rf /lib/systemd/system/shadowsocksR.service
-    fi
-    echo -e " ${RED}卸载成功${PLAIN}"
-}
-
-slogon() {
-    echo "欢迎使用ShadowsocksR一键安装脚本"
-}
-
-action=$1
-[ -z $1 ] && action=install
-case "$action" in
-    install|uninstall|info)
-        ${action}
-        ;;
-    *)
-        echo " 参数错误"
-        echo " 用法: `basename $0` [install|uninstall|info]"
-        ;;
-esac
